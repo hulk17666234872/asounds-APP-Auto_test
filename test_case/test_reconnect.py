@@ -20,7 +20,7 @@ def reconnect_txt_():
     f_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
     jg = open(r'D:\reconnecttest.txt', 'a')
     k = '      '
-    name = '回连成功'
+    name = '蓝牙回连成功'
     jg.write('\n' + f_time + k + name)
     jg.close()
 def ANC_txt_():
@@ -58,7 +58,9 @@ def test_reconnect_():
     d.press("home")
     open_settings_()
     d(resourceId="android:id/title", text="蓝牙").click(timeout=2)
-    for i in range(200):
+    print("开始耳机回连测试，请耐心等待结果")
+    time.sleep(2)
+    for i in range(100):
         d(resourceId="android:id/title", text="开启蓝牙").click()
         time.sleep(1)
         d(resourceId="android:id/title", text="开启蓝牙").click()
@@ -73,7 +75,9 @@ def test_reconnect_():
     assert d.toast.get_message(default='要断开与该设备的连接吗？')
 def test_startANC_ausound():
     device_connect_()
-    for i in range(200):
+    print("开始耳机ANC开关压力测试测试，请耐心等待结果")
+    time.sleep(2)
+    for i in range(100):
         d.app_start('com.realsil.ausounds', wait = True)
         time.sleep(5)
         d(resourceId="com.realsil.ausounds:id/tab_denoise").click()
@@ -87,12 +91,14 @@ def test_startANC_ausound():
 def test_AAC_SBC_Music_check():
     device_connect_()
     open_settings_()
+    print("---开始耳机ANC开关压力测试，请耐心等待结果---")
+    time.sleep(2)
     d(resourceId="android:id/title", text="蓝牙").click()
     d(resourceId="com.android.settings:id/preference_detail").click()
     time.sleep(2)
     d.swipe(410, 1258, 455, 650, 0.1)  # h向下滑动找到AAC元素
     time.sleep(2)
-    for i in range(100):
+    for i in range(10):
         d(resourceId="android:id/title", text="AAC").click()
         time.sleep(5)
         d.watcher.start(2.0)
@@ -105,10 +111,12 @@ def test_AAC_SBC_Music_check():
     d.press("home")
     assert d(resourceId="android:id/title", text="AAC").click
     '''执行完毕后需要连接手机主观判断耳机播放音乐有无声音'''
-#@pytest.mark.cancal
+@pytest.mark.cancal
 def test_Pairing_Connect_Phone_check():
     device_connect_()
     open_settings_()
+    print("---开始耳机取消配再连接压力测试，请耐心等待结果---")
+    time.sleep(2)
     d(resourceId="android:id/title", text="蓝牙").click()
     time.sleep(2)
     for i in range(100):
@@ -116,7 +124,7 @@ def test_Pairing_Connect_Phone_check():
         d(resourceId="android:id/title", text="取消配对").click()
         time.sleep(2)
         d.watcher.start(2.0)
-        d.watcher.when('AIHOOR A4').click()
+        d.watcher.when('AU-Frequency ANC').click()
         time.sleep(6)
         d.watcher.reset()
         #d(resourceId="com.android.settings:id/pairing_accept_button").click()备用点击配对方案
@@ -211,7 +219,9 @@ def test_Disconnect_by_hand():
     d.press("home")
     open_settings_()
     d(resourceId="android:id/title", text="蓝牙").click(timeout=2)
-    for i in range(100):
+    print("---开始断连压力测试，请耐心等待结果---")
+    time.sleep(2)
+    for i in range(10):
         d(resourceId="android:id/summary").click()
         time.sleep(1)
         d(resourceId="android:id/button1").click()
@@ -220,6 +230,7 @@ def test_Disconnect_by_hand():
         time.sleep(6)
         dis_reconnect_by_hand()
     assert d(resourceId="android:id/button1").click
+
 #def test_
 
 
@@ -228,3 +239,4 @@ def test_Disconnect_by_hand():
     #pytest.main(["-m","cancal"])
 if __name__ == '__main__':
     pytest.main(['--html=../report/test_re.html', 'test_reconnect.py'])
+    print("---测试结束，请点击Report查看测试结果！")

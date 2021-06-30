@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++)
+        filterItems[i].hidden = false;
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>test_xuhan2.html</h1>
+    <p>Report generated on 25-Jun-2021 at 16:28:48 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "0.13.1", "py": "1.10.0", "pytest": "6.2.4"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.19041-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"allure-pytest": "2.8.40", "html": "3.1.1", "metadata": "1.11.0"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.8.5</td></tr></table>
+    <h2>Summary</h2>
+    <p>1 tests ran in 2792.86 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">1 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">ç»­èªçæ§èç¨¿.py::test_xuhan100</td>
+          <td class="col-duration">2790.19</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">d.screenshot(r&#x27;D:\续航测试\60.png&#x27;)<br/>    def Screenshot50():<br/>        d.screenshot(r&#x27;D:\续航测试\50.png&#x27;)<br/>    def Screenshot40():<br/>        d.screenshot(r&#x27;D:\续航测试\40.png&#x27;)<br/>    def Screenshot30():<br/>        d.screenshot(r&#x27;D:\续航测试\30.png&#x27;)<br/>    def Screenshot20():<br/>        d.screenshot(r&#x27;D:\续航测试\20.png&#x27;)<br/>    def Screenshot10():<br/>&gt;       d.screenshot(r&#x27;D:\续航测试\10.png&#x27;)<br/><br/>续航监控草稿.py:32: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x0000020344535580&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;android:id/button2&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/> ------------------------------Captured stderr call------------------------------ <br/>[I 210625 15:42:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 15:42:29 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:29 watcher:181] already started
+[I 210625 15:42:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:34 watcher:181] already started
+[I 210625 15:42:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:38 watcher:181] already started
+[I 210625 15:42:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:43 watcher:181] already started
+[I 210625 15:42:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:48 watcher:181] already started
+[I 210625 15:42:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:52 watcher:181] already started
+[I 210625 15:42:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:42:57 watcher:181] already started
+[I 210625 15:43:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:01 watcher:181] already started
+[I 210625 15:43:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:06 watcher:181] already started
+[I 210625 15:43:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:11 watcher:181] already started
+[I 210625 15:43:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:15 watcher:181] already started
+[I 210625 15:43:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:20 watcher:181] already started
+[I 210625 15:43:23 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:24 watcher:181] already started
+[I 210625 15:43:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:29 watcher:181] already started
+[I 210625 15:43:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:34 watcher:181] already started
+[I 210625 15:43:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:38 watcher:181] already started
+[I 210625 15:43:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:43 watcher:181] already started
+[I 210625 15:43:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:47 watcher:181] already started
+[I 210625 15:43:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:52 watcher:181] already started
+[I 210625 15:43:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:43:57 watcher:181] already started
+[I 210625 15:44:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:01 watcher:181] already started
+[I 210625 15:44:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:06 watcher:181] already started
+[I 210625 15:44:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:10 watcher:181] already started
+[I 210625 15:44:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:15 watcher:181] already started
+[I 210625 15:44:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:20 watcher:181] already started
+[I 210625 15:44:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:24 watcher:181] already started
+[I 210625 15:44:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:29 watcher:181] already started
+[I 210625 15:44:32 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:33 watcher:181] already started
+[I 210625 15:44:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:38 watcher:181] already started
+[I 210625 15:44:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:43 watcher:181] already started
+[I 210625 15:44:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:47 watcher:181] already started
+[I 210625 15:44:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:52 watcher:181] already started
+[I 210625 15:44:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:44:56 watcher:181] already started
+[I 210625 15:45:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:01 watcher:181] already started
+[I 210625 15:45:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:06 watcher:181] already started
+[I 210625 15:45:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:10 watcher:181] already started
+[I 210625 15:45:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:15 watcher:181] already started
+[I 210625 15:45:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:19 watcher:181] already started
+[I 210625 15:45:23 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:24 watcher:181] already started
+[I 210625 15:45:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:29 watcher:181] already started
+[I 210625 15:45:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:33 watcher:181] already started
+[I 210625 15:45:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:38 watcher:181] already started
+[I 210625 15:45:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:42 watcher:181] already started
+[I 210625 15:45:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:47 watcher:181] already started
+[I 210625 15:45:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:52 watcher:181] already started
+[I 210625 15:45:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:45:56 watcher:181] already started
+[I 210625 15:45:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:01 watcher:181] already started
+[I 210625 15:46:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:05 watcher:181] already started
+[I 210625 15:46:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:10 watcher:181] already started
+[I 210625 15:46:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:15 watcher:181] already started
+[I 210625 15:46:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:19 watcher:181] already started
+[I 210625 15:46:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:24 watcher:181] already started
+[I 210625 15:46:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:28 watcher:181] already started
+[I 210625 15:46:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:33 watcher:181] already started
+[I 210625 15:46:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:38 watcher:181] already started
+[I 210625 15:46:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:42 watcher:181] already started
+[I 210625 15:46:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:47 watcher:181] already started
+[I 210625 15:46:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:51 watcher:181] already started
+[I 210625 15:46:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:46:56 watcher:181] already started
+[I 210625 15:46:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:01 watcher:181] already started
+[I 210625 15:47:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:05 watcher:181] already started
+[I 210625 15:47:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:10 watcher:181] already started
+[I 210625 15:47:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:14 watcher:181] already started
+[I 210625 15:47:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:19 watcher:181] already started
+[I 210625 15:47:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:24 watcher:181] already started
+[W 210625 15:47:28 watcher:181] already started
+[I 210625 15:47:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 15:47:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:37 watcher:181] already started
+[I 210625 15:47:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:42 watcher:181] already started
+[I 210625 15:47:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:46 watcher:181] already started
+[I 210625 15:47:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:51 watcher:181] already started
+[I 210625 15:47:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:47:55 watcher:181] already started
+[I 210625 15:47:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:00 watcher:181] already started
+[I 210625 15:48:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:05 watcher:181] already started
+[I 210625 15:48:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:09 watcher:181] already started
+[I 210625 15:48:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:14 watcher:181] already started
+[I 210625 15:48:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:18 watcher:181] already started
+[I 210625 15:48:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:23 watcher:181] already started
+[I 210625 15:48:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:28 watcher:181] already started
+[I 210625 15:48:32 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:32 watcher:181] already started
+[I 210625 15:48:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:37 watcher:181] already started
+[I 210625 15:48:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:42 watcher:181] already started
+[I 210625 15:48:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:46 watcher:181] already started
+[I 210625 15:48:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:51 watcher:181] already started
+[I 210625 15:48:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:48:56 watcher:181] already started
+[I 210625 15:48:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:00 watcher:181] already started
+[I 210625 15:49:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:05 watcher:181] already started
+[I 210625 15:49:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:09 watcher:181] already started
+[I 210625 15:49:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:14 watcher:181] already started
+[I 210625 15:49:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:18 watcher:181] already started
+[I 210625 15:49:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:23 watcher:181] already started
+[I 210625 15:49:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:28 watcher:181] already started
+[I 210625 15:49:32 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:32 watcher:181] already started
+[I 210625 15:49:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:37 watcher:181] already started
+[I 210625 15:49:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:42 watcher:181] already started
+[I 210625 15:49:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:46 watcher:181] already started
+[I 210625 15:49:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:51 watcher:181] already started
+[I 210625 15:49:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:49:55 watcher:181] already started
+[I 210625 15:49:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:00 watcher:181] already started
+[I 210625 15:50:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:05 watcher:181] already started
+[I 210625 15:50:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:09 watcher:181] already started
+[I 210625 15:50:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:14 watcher:181] already started
+[I 210625 15:50:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:18 watcher:181] already started
+[I 210625 15:50:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:23 watcher:181] already started
+[I 210625 15:50:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:28 watcher:181] already started
+[I 210625 15:50:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:32 watcher:181] already started
+[I 210625 15:50:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:37 watcher:181] already started
+[I 210625 15:50:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:41 watcher:181] already started
+[I 210625 15:50:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:46 watcher:181] already started
+[I 210625 15:50:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:51 watcher:181] already started
+[I 210625 15:50:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:50:55 watcher:181] already started
+[I 210625 15:50:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:00 watcher:181] already started
+[I 210625 15:51:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:04 watcher:181] already started
+[I 210625 15:51:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:09 watcher:181] already started
+[I 210625 15:51:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:14 watcher:181] already started
+[I 210625 15:51:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:18 watcher:181] already started
+[I 210625 15:51:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:23 watcher:181] already started
+[I 210625 15:51:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:28 watcher:181] already started
+[I 210625 15:51:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:32 watcher:181] already started
+[I 210625 15:51:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:37 watcher:181] already started
+[I 210625 15:51:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:41 watcher:181] already started
+[I 210625 15:51:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:46 watcher:181] already started
+[I 210625 15:51:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:51 watcher:181] already started
+[I 210625 15:51:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:51:55 watcher:181] already started
+[I 210625 15:51:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:00 watcher:181] already started
+[I 210625 15:52:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:04 watcher:181] already started
+[I 210625 15:52:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:09 watcher:181] already started
+[I 210625 15:52:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:14 watcher:181] already started
+[I 210625 15:52:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:18 watcher:181] already started
+[I 210625 15:52:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:23 watcher:181] already started
+[I 210625 15:52:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:28 watcher:181] already started
+[I 210625 15:52:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:32 watcher:181] already started
+[I 210625 15:52:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:37 watcher:181] already started
+[I 210625 15:52:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:41 watcher:181] already started
+[I 210625 15:52:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:46 watcher:181] already started
+[I 210625 15:52:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:51 watcher:181] already started
+[I 210625 15:52:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:52:55 watcher:181] already started
+[I 210625 15:52:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:00 watcher:181] already started
+[I 210625 15:53:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:05 watcher:181] already started
+[I 210625 15:53:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:09 watcher:181] already started
+[I 210625 15:53:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:14 watcher:181] already started
+[I 210625 15:53:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:18 watcher:181] already started
+[I 210625 15:53:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:23 watcher:181] already started
+[I 210625 15:53:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:28 watcher:181] already started
+[I 210625 15:53:32 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:32 watcher:181] already started
+[I 210625 15:53:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:37 watcher:181] already started
+[I 210625 15:53:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:41 watcher:181] already started
+[I 210625 15:53:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:46 watcher:181] already started
+[I 210625 15:53:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:51 watcher:181] already started
+[I 210625 15:53:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:53:55 watcher:181] already started
+[I 210625 15:53:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:00 watcher:181] already started
+[I 210625 15:54:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:04 watcher:181] already started
+[I 210625 15:54:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:09 watcher:181] already started
+[I 210625 15:54:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:14 watcher:181] already started
+[I 210625 15:54:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:18 watcher:181] already started
+[I 210625 15:54:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:23 watcher:181] already started
+[I 210625 15:54:25 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:27 watcher:181] already started
+[I 210625 15:54:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:32 watcher:181] already started
+[I 210625 15:54:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:37 watcher:181] already started
+[I 210625 15:54:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:41 watcher:181] already started
+[I 210625 15:54:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:46 watcher:181] already started
+[I 210625 15:54:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:50 watcher:181] already started
+[I 210625 15:54:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:54:55 watcher:181] already started
+[I 210625 15:54:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:00 watcher:181] already started
+[I 210625 15:55:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:04 watcher:181] already started
+[I 210625 15:55:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:09 watcher:181] already started
+[I 210625 15:55:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:13 watcher:181] already started
+[I 210625 15:55:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:18 watcher:181] already started
+[I 210625 15:55:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:22 watcher:181] already started
+[I 210625 15:55:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:27 watcher:181] already started
+[I 210625 15:55:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:32 watcher:181] already started
+[I 210625 15:55:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:36 watcher:181] already started
+[I 210625 15:55:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:41 watcher:181] already started
+[I 210625 15:55:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:45 watcher:181] already started
+[I 210625 15:55:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:50 watcher:181] already started
+[I 210625 15:55:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:55 watcher:181] already started
+[I 210625 15:55:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:55:59 watcher:181] already started
+[I 210625 15:56:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:04 watcher:181] already started
+[I 210625 15:56:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:08 watcher:181] already started
+[I 210625 15:56:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:13 watcher:181] already started
+[I 210625 15:56:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:18 watcher:181] already started
+[I 210625 15:56:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:22 watcher:181] already started
+[I 210625 15:56:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:27 watcher:181] already started
+[I 210625 15:56:29 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:31 watcher:181] already started
+[I 210625 15:56:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:36 watcher:181] already started
+[I 210625 15:56:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:41 watcher:181] already started
+[I 210625 15:56:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:45 watcher:181] already started
+[I 210625 15:56:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:50 watcher:181] already started
+[I 210625 15:56:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:54 watcher:181] already started
+[I 210625 15:56:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:56:59 watcher:181] already started
+[I 210625 15:57:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:04 watcher:181] already started
+[I 210625 15:57:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:08 watcher:181] already started
+[I 210625 15:57:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:13 watcher:181] already started
+[I 210625 15:57:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:17 watcher:181] already started
+[I 210625 15:57:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:22 watcher:181] already started
+[I 210625 15:57:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:27 watcher:181] already started
+[I 210625 15:57:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:31 watcher:181] already started
+[I 210625 15:57:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:36 watcher:181] already started
+[I 210625 15:57:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:40 watcher:181] already started
+[I 210625 15:57:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:45 watcher:181] already started
+[I 210625 15:57:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:49 watcher:181] already started
+[I 210625 15:57:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:54 watcher:181] already started
+[I 210625 15:57:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:57:59 watcher:181] already started
+[I 210625 15:58:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:03 watcher:181] already started
+[I 210625 15:58:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:08 watcher:181] already started
+[I 210625 15:58:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:12 watcher:181] already started
+[I 210625 15:58:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:17 watcher:181] already started
+[I 210625 15:58:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:22 watcher:181] already started
+[I 210625 15:58:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:26 watcher:181] already started
+[I 210625 15:58:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:31 watcher:181] already started
+[I 210625 15:58:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:35 watcher:181] already started
+[I 210625 15:58:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:40 watcher:181] already started
+[I 210625 15:58:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:45 watcher:181] already started
+[I 210625 15:58:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:49 watcher:181] already started
+[I 210625 15:58:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:54 watcher:181] already started
+[I 210625 15:58:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:58:58 watcher:181] already started
+[I 210625 15:59:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:03 watcher:181] already started
+[I 210625 15:59:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:08 watcher:181] already started
+[I 210625 15:59:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:12 watcher:181] already started
+[I 210625 15:59:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:17 watcher:181] already started
+[I 210625 15:59:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:22 watcher:181] already started
+[I 210625 15:59:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:26 watcher:181] already started
+[I 210625 15:59:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:31 watcher:181] already started
+[I 210625 15:59:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:36 watcher:181] already started
+[I 210625 15:59:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:40 watcher:181] already started
+[I 210625 15:59:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:45 watcher:181] already started
+[I 210625 15:59:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:49 watcher:181] already started
+[I 210625 15:59:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:54 watcher:181] already started
+[I 210625 15:59:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 15:59:58 watcher:181] already started
+[I 210625 16:00:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:03 watcher:181] already started
+[I 210625 16:00:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:08 watcher:181] already started
+[I 210625 16:00:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:12 watcher:181] already started
+[I 210625 16:00:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:17 watcher:181] already started
+[I 210625 16:00:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:22 watcher:181] already started
+[I 210625 16:00:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:26 watcher:181] already started
+[I 210625 16:00:29 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:31 watcher:181] already started
+[I 210625 16:00:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:35 watcher:181] already started
+[I 210625 16:00:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:40 watcher:181] already started
+[I 210625 16:00:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:45 watcher:181] already started
+[I 210625 16:00:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:49 watcher:181] already started
+[I 210625 16:00:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:54 watcher:181] already started
+[I 210625 16:00:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:00:58 watcher:181] already started
+[I 210625 16:01:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:03 watcher:181] already started
+[I 210625 16:01:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:07 watcher:181] already started
+[I 210625 16:01:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:12 watcher:181] already started
+[I 210625 16:01:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:17 watcher:181] already started
+[I 210625 16:01:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:21 watcher:181] already started
+[I 210625 16:01:25 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:26 watcher:181] already started
+[W 210625 16:01:31 watcher:181] already started
+[I 210625 16:01:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:01:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:35 watcher:181] already started
+[I 210625 16:01:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:40 watcher:181] already started
+[I 210625 16:01:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:45 watcher:181] already started
+[I 210625 16:01:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:49 watcher:181] already started
+[I 210625 16:01:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:54 watcher:181] already started
+[I 210625 16:01:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:01:58 watcher:181] already started
+[I 210625 16:02:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:03 watcher:181] already started
+[I 210625 16:02:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:08 watcher:181] already started
+[I 210625 16:02:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:12 watcher:181] already started
+[I 210625 16:02:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:17 watcher:181] already started
+[I 210625 16:02:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:21 watcher:181] already started
+[I 210625 16:02:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:26 watcher:181] already started
+[I 210625 16:02:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:31 watcher:181] already started
+[I 210625 16:02:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:35 watcher:181] already started
+[I 210625 16:02:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:40 watcher:181] already started
+[I 210625 16:02:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:44 watcher:181] already started
+[I 210625 16:02:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:49 watcher:181] already started
+[I 210625 16:02:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:53 watcher:181] already started
+[I 210625 16:02:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:02:58 watcher:181] already started
+[I 210625 16:03:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:03 watcher:181] already started
+[I 210625 16:03:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:07 watcher:181] already started
+[I 210625 16:03:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:12 watcher:181] already started
+[I 210625 16:03:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:17 watcher:181] already started
+[I 210625 16:03:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:21 watcher:181] already started
+[I 210625 16:03:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:26 watcher:181] already started
+[I 210625 16:03:29 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:30 watcher:181] already started
+[I 210625 16:03:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:35 watcher:181] already started
+[I 210625 16:03:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:40 watcher:181] already started
+[I 210625 16:03:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:44 watcher:181] already started
+[I 210625 16:03:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:49 watcher:181] already started
+[I 210625 16:03:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:53 watcher:181] already started
+[I 210625 16:03:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:03:58 watcher:181] already started
+[I 210625 16:04:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:03 watcher:181] already started
+[I 210625 16:04:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:07 watcher:181] already started
+[I 210625 16:04:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:12 watcher:181] already started
+[W 210625 16:04:16 watcher:181] already started
+[I 210625 16:04:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:04:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:21 watcher:181] already started
+[I 210625 16:04:25 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:26 watcher:181] already started
+[I 210625 16:04:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:30 watcher:181] already started
+[I 210625 16:04:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:35 watcher:181] already started
+[I 210625 16:04:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:40 watcher:181] already started
+[I 210625 16:04:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:44 watcher:181] already started
+[I 210625 16:04:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:49 watcher:181] already started
+[W 210625 16:04:53 watcher:181] already started
+[I 210625 16:04:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:04:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:04:58 watcher:181] already started
+[I 210625 16:05:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:03 watcher:181] already started
+[I 210625 16:05:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:07 watcher:181] already started
+[I 210625 16:05:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:12 watcher:181] already started
+[I 210625 16:05:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:16 watcher:181] already started
+[I 210625 16:05:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:21 watcher:181] already started
+[I 210625 16:05:25 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:26 watcher:181] already started
+[I 210625 16:05:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:30 watcher:181] already started
+[I 210625 16:05:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:35 watcher:181] already started
+[I 210625 16:05:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:40 watcher:181] already started
+[I 210625 16:05:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:44 watcher:181] already started
+[I 210625 16:05:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:49 watcher:181] already started
+[I 210625 16:05:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:53 watcher:181] already started
+[I 210625 16:05:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:05:58 watcher:181] already started
+[I 210625 16:06:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:03 watcher:181] already started
+[W 210625 16:06:07 watcher:181] already started
+[I 210625 16:06:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:06:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:12 watcher:181] already started
+[I 210625 16:06:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:16 watcher:181] already started
+[I 210625 16:06:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:21 watcher:181] already started
+[I 210625 16:06:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:26 watcher:181] already started
+[I 210625 16:06:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:30 watcher:181] already started
+[I 210625 16:06:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:35 watcher:181] already started
+[I 210625 16:06:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:39 watcher:181] already started
+[W 210625 16:06:44 watcher:181] already started
+[I 210625 16:06:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:06:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:49 watcher:181] already started
+[I 210625 16:06:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:53 watcher:181] already started
+[I 210625 16:06:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:06:58 watcher:181] already started
+[I 210625 16:07:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:02 watcher:181] already started
+[I 210625 16:07:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:07 watcher:181] already started
+[I 210625 16:07:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:12 watcher:181] already started
+[I 210625 16:07:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:16 watcher:181] already started
+[I 210625 16:07:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:21 watcher:181] already started
+[I 210625 16:07:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:26 watcher:181] already started
+[I 210625 16:07:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:30 watcher:181] already started
+[I 210625 16:07:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:35 watcher:181] already started
+[I 210625 16:07:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:39 watcher:181] already started
+[I 210625 16:07:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:44 watcher:181] already started
+[I 210625 16:07:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:49 watcher:181] already started
+[I 210625 16:07:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:53 watcher:181] already started
+[I 210625 16:07:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:07:58 watcher:181] already started
+[I 210625 16:08:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:02 watcher:181] already started
+[I 210625 16:08:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:07 watcher:181] already started
+[I 210625 16:08:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:12 watcher:181] already started
+[I 210625 16:08:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:16 watcher:181] already started
+[W 210625 16:08:21 watcher:181] already started
+[I 210625 16:08:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:08:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:26 watcher:181] already started
+[I 210625 16:08:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:30 watcher:181] already started
+[I 210625 16:08:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:35 watcher:181] already started
+[I 210625 16:08:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:39 watcher:181] already started
+[I 210625 16:08:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:44 watcher:181] already started
+[I 210625 16:08:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:48 watcher:181] already started
+[I 210625 16:08:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:53 watcher:181] already started
+[I 210625 16:08:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:08:58 watcher:181] already started
+[I 210625 16:09:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:02 watcher:181] already started
+[I 210625 16:09:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:07 watcher:181] already started
+[I 210625 16:09:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:11 watcher:181] already started
+[I 210625 16:09:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:16 watcher:181] already started
+[I 210625 16:09:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:21 watcher:181] already started
+[I 210625 16:09:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:25 watcher:181] already started
+[I 210625 16:09:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:30 watcher:181] already started
+[I 210625 16:09:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:34 watcher:181] already started
+[I 210625 16:09:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:39 watcher:181] already started
+[I 210625 16:09:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:44 watcher:181] already started
+[I 210625 16:09:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:48 watcher:181] already started
+[I 210625 16:09:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:53 watcher:181] already started
+[I 210625 16:09:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:09:57 watcher:181] already started
+[I 210625 16:10:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:02 watcher:181] already started
+[I 210625 16:10:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:06 watcher:181] already started
+[I 210625 16:10:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:11 watcher:181] already started
+[I 210625 16:10:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:16 watcher:181] already started
+[I 210625 16:10:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:20 watcher:181] already started
+[I 210625 16:10:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:25 watcher:181] already started
+[I 210625 16:10:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:29 watcher:181] already started
+[I 210625 16:10:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:34 watcher:181] already started
+[I 210625 16:10:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:39 watcher:181] already started
+[I 210625 16:10:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:43 watcher:181] already started
+[I 210625 16:10:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:48 watcher:181] already started
+[I 210625 16:10:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:52 watcher:181] already started
+[I 210625 16:10:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:10:57 watcher:181] already started
+[I 210625 16:11:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:02 watcher:181] already started
+[I 210625 16:11:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:06 watcher:181] already started
+[I 210625 16:11:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:11 watcher:181] already started
+[I 210625 16:11:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:15 watcher:181] already started
+[I 210625 16:11:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:20 watcher:181] already started
+[I 210625 16:11:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:25 watcher:181] already started
+[I 210625 16:11:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:29 watcher:181] already started
+[I 210625 16:11:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:34 watcher:181] already started
+[I 210625 16:11:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:38 watcher:181] already started
+[I 210625 16:11:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:43 watcher:181] already started
+[I 210625 16:11:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:48 watcher:181] already started
+[I 210625 16:11:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:52 watcher:181] already started
+[I 210625 16:11:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:11:57 watcher:181] already started
+[I 210625 16:12:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:01 watcher:181] already started
+[I 210625 16:12:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:06 watcher:181] already started
+[I 210625 16:12:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:10 watcher:181] already started
+[I 210625 16:12:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:15 watcher:181] already started
+[I 210625 16:12:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:20 watcher:181] already started
+[W 210625 16:12:24 watcher:181] already started
+[I 210625 16:12:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:12:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:29 watcher:181] already started
+[I 210625 16:12:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:34 watcher:181] already started
+[I 210625 16:12:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:38 watcher:181] already started
+[I 210625 16:12:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:43 watcher:181] already started
+[I 210625 16:12:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:47 watcher:181] already started
+[I 210625 16:12:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:12:52 watcher:181] already started
+[W 210625 16:12:57 watcher:181] already started
+[I 210625 16:12:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:13:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:01 watcher:181] already started
+[I 210625 16:13:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:06 watcher:181] already started
+[I 210625 16:13:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:10 watcher:181] already started
+[I 210625 16:13:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:15 watcher:181] already started
+[I 210625 16:13:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:20 watcher:181] already started
+[I 210625 16:13:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:24 watcher:181] already started
+[I 210625 16:13:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:29 watcher:181] already started
+[I 210625 16:13:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:33 watcher:181] already started
+[I 210625 16:13:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:38 watcher:181] already started
+[I 210625 16:13:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:43 watcher:181] already started
+[I 210625 16:13:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:47 watcher:181] already started
+[I 210625 16:13:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:52 watcher:181] already started
+[I 210625 16:13:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:13:57 watcher:181] already started
+[I 210625 16:13:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:01 watcher:181] already started
+[I 210625 16:14:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:06 watcher:181] already started
+[I 210625 16:14:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:10 watcher:181] already started
+[I 210625 16:14:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:15 watcher:181] already started
+[I 210625 16:14:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:20 watcher:181] already started
+[I 210625 16:14:23 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:24 watcher:181] already started
+[I 210625 16:14:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:29 watcher:181] already started
+[I 210625 16:14:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:33 watcher:181] already started
+[I 210625 16:14:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:38 watcher:181] already started
+[W 210625 16:14:43 watcher:181] already started
+[I 210625 16:14:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:14:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:47 watcher:181] already started
+[I 210625 16:14:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:52 watcher:181] already started
+[I 210625 16:14:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:14:56 watcher:181] already started
+[I 210625 16:15:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:01 watcher:181] already started
+[I 210625 16:15:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:06 watcher:181] already started
+[I 210625 16:15:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:10 watcher:181] already started
+[I 210625 16:15:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:15 watcher:181] already started
+[I 210625 16:15:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:19 watcher:181] already started
+[I 210625 16:15:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:24 watcher:181] already started
+[I 210625 16:15:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:29 watcher:181] already started
+[I 210625 16:15:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:33 watcher:181] already started
+[I 210625 16:15:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:38 watcher:181] already started
+[I 210625 16:15:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:42 watcher:181] already started
+[I 210625 16:15:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:47 watcher:181] already started
+[I 210625 16:15:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:52 watcher:181] already started
+[I 210625 16:15:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:15:56 watcher:181] already started
+[I 210625 16:16:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:01 watcher:181] already started
+[I 210625 16:16:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:05 watcher:181] already started
+[I 210625 16:16:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:10 watcher:181] already started
+[I 210625 16:16:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:15 watcher:181] already started
+[I 210625 16:16:17 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:19 watcher:181] already started
+[I 210625 16:16:23 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:24 watcher:181] already started
+[I 210625 16:16:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:28 watcher:181] already started
+[I 210625 16:16:32 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:33 watcher:181] already started
+[W 210625 16:16:38 watcher:181] already started
+[I 210625 16:16:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:16:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:42 watcher:181] already started
+[I 210625 16:16:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:47 watcher:181] already started
+[I 210625 16:16:50 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:51 watcher:181] already started
+[I 210625 16:16:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:16:56 watcher:181] already started
+[I 210625 16:16:59 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:01 watcher:181] already started
+[I 210625 16:17:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:05 watcher:181] already started
+[I 210625 16:17:08 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:10 watcher:181] already started
+[I 210625 16:17:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:14 watcher:181] already started
+[W 210625 16:17:19 watcher:181] already started
+[I 210625 16:17:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:17:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:24 watcher:181] already started
+[I 210625 16:17:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:28 watcher:181] already started
+[I 210625 16:17:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:33 watcher:181] already started
+[I 210625 16:17:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:37 watcher:181] already started
+[I 210625 16:17:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:42 watcher:181] already started
+[I 210625 16:17:46 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:47 watcher:181] already started
+[I 210625 16:17:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:51 watcher:181] already started
+[I 210625 16:17:55 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:17:56 watcher:181] already started
+[I 210625 16:17:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:00 watcher:181] already started
+[I 210625 16:18:04 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:05 watcher:181] already started
+[W 210625 16:18:09 watcher:181] already started
+[I 210625 16:18:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:18:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:14 watcher:181] already started
+[I 210625 16:18:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:19 watcher:181] already started
+[I 210625 16:18:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:23 watcher:181] already started
+[I 210625 16:18:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:28 watcher:181] already started
+[I 210625 16:18:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:32 watcher:181] already started
+[I 210625 16:18:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:37 watcher:181] already started
+[I 210625 16:18:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:42 watcher:181] already started
+[I 210625 16:18:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:46 watcher:181] already started
+[W 210625 16:18:51 watcher:181] already started
+[I 210625 16:18:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:18:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:18:56 watcher:181] already started
+[I 210625 16:19:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:00 watcher:181] already started
+[I 210625 16:19:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:05 watcher:181] already started
+[I 210625 16:19:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:09 watcher:181] already started
+[I 210625 16:19:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:14 watcher:181] already started
+[I 210625 16:19:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:18 watcher:181] already started
+[I 210625 16:19:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:23 watcher:181] already started
+[I 210625 16:19:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:28 watcher:181] already started
+[I 210625 16:19:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:32 watcher:181] already started
+[I 210625 16:19:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:37 watcher:181] already started
+[W 210625 16:19:42 watcher:181] already started
+[I 210625 16:19:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:19:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:46 watcher:181] already started
+[I 210625 16:19:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:51 watcher:181] already started
+[I 210625 16:19:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:19:55 watcher:181] already started
+[I 210625 16:20:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:00 watcher:181] already started
+[I 210625 16:20:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:05 watcher:181] already started
+[I 210625 16:20:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:09 watcher:181] already started
+[I 210625 16:20:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:14 watcher:181] already started
+[I 210625 16:20:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:18 watcher:181] already started
+[I 210625 16:20:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:23 watcher:181] already started
+[I 210625 16:20:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:27 watcher:181] already started
+[I 210625 16:20:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:32 watcher:181] already started
+[I 210625 16:20:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:37 watcher:181] already started
+[W 210625 16:20:41 watcher:181] already started
+[I 210625 16:20:41 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:20:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:46 watcher:181] already started
+[W 210625 16:20:50 watcher:181] already started
+[I 210625 16:20:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:20:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:20:55 watcher:181] already started
+[I 210625 16:21:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:00 watcher:181] already started
+[I 210625 16:21:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:04 watcher:181] already started
+[I 210625 16:21:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:09 watcher:181] already started
+[I 210625 16:21:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:13 watcher:181] already started
+[I 210625 16:21:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:18 watcher:181] already started
+[I 210625 16:21:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:23 watcher:181] already started
+[I 210625 16:21:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:27 watcher:181] already started
+[I 210625 16:21:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:32 watcher:181] already started
+[I 210625 16:21:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:36 watcher:181] already started
+[I 210625 16:21:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:41 watcher:181] already started
+[I 210625 16:21:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:46 watcher:181] already started
+[I 210625 16:21:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:50 watcher:181] already started
+[I 210625 16:21:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:55 watcher:181] already started
+[I 210625 16:21:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:21:59 watcher:181] already started
+[I 210625 16:22:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:04 watcher:181] already started
+[I 210625 16:22:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:08 watcher:181] already started
+[I 210625 16:22:12 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:13 watcher:181] already started
+[W 210625 16:22:18 watcher:181] already started
+[I 210625 16:22:18 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[I 210625 16:22:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:22 watcher:181] already started
+[I 210625 16:22:27 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:27 watcher:181] already started
+[I 210625 16:22:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:32 watcher:181] already started
+[I 210625 16:22:36 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:36 watcher:181] already started
+[I 210625 16:22:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:41 watcher:181] already started
+[I 210625 16:22:45 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:46 watcher:181] already started
+[I 210625 16:22:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:50 watcher:181] already started
+[I 210625 16:22:54 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:55 watcher:181] already started
+[I 210625 16:22:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:22:59 watcher:181] already started
+[I 210625 16:23:03 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:04 watcher:181] already started
+[I 210625 16:23:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:08 watcher:181] already started
+[I 210625 16:23:13 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:13 watcher:181] already started
+[I 210625 16:23:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:18 watcher:181] already started
+[I 210625 16:23:22 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:22 watcher:181] already started
+[I 210625 16:23:25 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:27 watcher:181] already started
+[I 210625 16:23:31 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:31 watcher:181] already started
+[I 210625 16:23:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:36 watcher:181] already started
+[I 210625 16:23:40 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:40 watcher:181] already started
+[I 210625 16:23:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:45 watcher:181] already started
+[I 210625 16:23:49 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:50 watcher:181] already started
+[I 210625 16:23:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:54 watcher:181] already started
+[I 210625 16:23:58 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:23:59 watcher:181] already started
+[I 210625 16:24:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:03 watcher:181] already started
+[I 210625 16:24:07 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:08 watcher:181] already started
+[I 210625 16:24:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:13 watcher:181] already started
+[I 210625 16:24:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:17 watcher:181] already started
+[I 210625 16:24:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:22 watcher:181] already started
+[I 210625 16:24:26 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:26 watcher:181] already started
+[I 210625 16:24:29 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:31 watcher:181] already started
+[I 210625 16:24:35 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:35 watcher:181] already started
+[I 210625 16:24:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:40 watcher:181] already started
+[I 210625 16:24:44 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:45 watcher:181] already started
+[I 210625 16:24:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:49 watcher:181] already started
+[I 210625 16:24:53 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:54 watcher:181] already started
+[I 210625 16:24:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:24:58 watcher:181] already started
+[I 210625 16:25:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:03 watcher:181] already started
+[I 210625 16:25:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:08 watcher:181] already started
+[I 210625 16:25:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:12 watcher:181] already started
+[I 210625 16:25:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:17 watcher:181] already started
+[I 210625 16:25:21 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:21 watcher:181] already started
+[I 210625 16:25:24 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:26 watcher:181] already started
+[I 210625 16:25:30 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:31 watcher:181] already started
+[I 210625 16:25:33 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:35 watcher:181] already started
+[I 210625 16:25:39 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:40 watcher:181] already started
+[I 210625 16:25:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:44 watcher:181] already started
+[I 210625 16:25:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:49 watcher:181] already started
+[I 210625 16:25:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:54 watcher:181] already started
+[I 210625 16:25:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:25:58 watcher:181] already started
+[I 210625 16:26:01 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:03 watcher:181] already started
+[I 210625 16:26:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:07 watcher:181] already started
+[I 210625 16:26:10 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:12 watcher:181] already started
+[I 210625 16:26:16 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:16 watcher:181] already started
+[I 210625 16:26:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:21 watcher:181] already started
+[I 210625 16:26:25 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:26 watcher:181] already started
+[I 210625 16:26:28 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:30 watcher:181] already started
+[I 210625 16:26:34 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:35 watcher:181] already started
+[I 210625 16:26:37 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:39 watcher:181] already started
+[I 210625 16:26:43 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:44 watcher:181] already started
+[I 210625 16:26:47 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:49 watcher:181] already started
+[I 210625 16:26:52 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:53 watcher:181] already started
+[I 210625 16:26:56 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:26:58 watcher:181] already started
+[I 210625 16:27:02 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:02 watcher:181] already started
+[I 210625 16:27:05 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:07 watcher:181] already started
+[I 210625 16:27:11 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:12 watcher:181] already started
+[I 210625 16:27:14 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:16 watcher:181] already started
+[I 210625 16:27:20 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:21 watcher:181] already started
+[I 210625 16:27:23 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:25 watcher:181] already started
+[I 210625 16:27:29 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:30 watcher:181] already started
+[I 210625 16:27:32 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:35 watcher:181] already started
+[I 210625 16:27:38 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:39 watcher:181] already started
+[I 210625 16:27:42 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:44 watcher:181] already started
+[I 210625 16:27:48 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:48 watcher:181] already started
+[I 210625 16:27:51 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:53 watcher:181] already started
+[I 210625 16:27:57 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:27:58 watcher:181] already started
+[I 210625 16:28:00 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:28:02 watcher:181] already started
+[I 210625 16:28:06 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:28:07 watcher:181] already started
+[I 210625 16:28:09 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:28:11 watcher:181] already started
+[I 210625 16:28:15 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:28:16 watcher:181] already started
+[I 210625 16:28:19 watcher:255] XPath(hook:): [&#x27;已连接 | 电量为 90% | 使用中&#x27;]
+[W 210625 16:28:21 watcher:181] already started
+[W 210625 16:28:25 watcher:181] already started
+<br/></div></td></tr></tbody></table></body></html>
