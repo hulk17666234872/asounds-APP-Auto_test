@@ -243,7 +243,7 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
 }
 </script>
     <h1>test_re.html</h1>
-    <p>Report generated on 24-Jun-2021 at 17:30:58 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <p>Report generated on 01-Jun-2021 at 19:34:24 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
@@ -259,8 +259,8 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <td>Python</td>
         <td>3.8.5</td></tr></table>
     <h2>Summary</h2>
-    <p>12 tests ran in 4915.82 seconds. </p>
-    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">10 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">2 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <p>12 tests ran in 7732.80 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">8 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">4 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
     <h2>Results</h2>
     <table id="results-table">
       <thead id="results-table-head">
@@ -275,219 +275,52 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <tr>
           <td class="col-result">Failed</td>
           <td class="col-name">test_reconnect.py::test_AAC_SBC_Music_check</td>
-          <td class="col-duration">31.79</td>
+          <td class="col-duration">30.79</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">def test_AAC_SBC_Music_check():<br/>        device_connect_()<br/>        open_settings_()<br/>        print(&quot;---开始耳机ANC开关压力测试，请耐心等待结果---&quot;)<br/>        time.sleep(2)<br/>        d(resourceId=&quot;android:id/title&quot;, text=&quot;蓝牙&quot;).click()<br/>        d(resourceId=&quot;com.android.settings:id/preference_detail&quot;).click()<br/>        time.sleep(2)<br/>        d.swipe(410, 1258, 455, 650, 0.1)  # h向下滑动找到AAC元素<br/>        time.sleep(2)<br/>        for i in range(10):<br/>&gt;           d(resourceId=&quot;android:id/title&quot;, text=&quot;AAC&quot;).click()<br/><br/>test_reconnect.py:102: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x00000202EFED35B0&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;android:id/title&#x27;, text=&#x27;AAC&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/> ------------------------------Captured stdout call------------------------------ <br/>---开始耳机ANC开关压力测试，请耐心等待结果---
-<br/></div></td></tr></tbody>
+            <div class="log">def test_AAC_SBC_Music_check():<br/>        device_connect_()<br/>        open_settings_()<br/>        d(resourceId=&quot;android:id/title&quot;, text=&quot;蓝牙&quot;).click()<br/>        d(resourceId=&quot;com.android.settings:id/preference_detail&quot;).click()<br/>        time.sleep(2)<br/>        d.swipe(410, 1258, 455, 650, 0.1)  # h向下滑动找到AAC元素<br/>        time.sleep(2)<br/>        for i in range(100):<br/>&gt;           d(resourceId=&quot;android:id/title&quot;, text=&quot;AAC&quot;).click()<br/><br/>test_reconnect.py:96: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x00000264BC0FC520&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;android:id/title&#x27;, text=&#x27;AAC&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/></div></td></tr></tbody>
       <tbody class="failed results-table-row">
         <tr>
           <td class="col-result">Failed</td>
           <td class="col-name">test_reconnect.py::test_Pairing_Connect_Phone_check</td>
-          <td class="col-duration">840.03</td>
+          <td class="col-duration">27.15</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log">@pytest.mark.cancal<br/>    def test_Pairing_Connect_Phone_check():<br/>        device_connect_()<br/>        open_settings_()<br/>        print(&quot;---开始耳机取消配再连接压力测试，请耐心等待结果---&quot;)<br/>        time.sleep(2)<br/>        d(resourceId=&quot;android:id/title&quot;, text=&quot;蓝牙&quot;).click()<br/>        time.sleep(2)<br/>        for i in range(100):<br/>            d(resourceId=&quot;com.android.settings:id/preference_detail&quot;).long_click()<br/>&gt;           d(resourceId=&quot;android:id/title&quot;, text=&quot;取消配对&quot;).click()<br/><br/>test_reconnect.py:124: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x00000202EEE8BC10&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;android:id/title&#x27;, text=&#x27;取消配对&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/> ------------------------------Captured stdout call------------------------------ <br/>---开始耳机取消配再连接压力测试，请耐心等待结果---
-<br/> ------------------------------Captured stderr call------------------------------ <br/>[I 210624 16:40:49 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:40:49 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:40:54 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:41:04 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:05 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:10 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:41:19 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:20 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:25 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:41:35 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:36 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:41 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:41:50 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:51 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:52 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:41:56 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:42:06 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:06 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:12 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:42:21 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:22 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:27 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:42:36 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:37 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:42 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:42:52 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:53 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:42:58 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:43:07 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:43:13 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:43:35 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:43:36 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:43:41 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:43:50 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:43:51 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:43:56 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:44:06 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:07 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:12 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:44:21 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:22 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:27 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:44:36 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:37 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:42 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:44:52 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:52 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:44:57 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:45:07 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:08 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:13 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:45:22 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:23 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:28 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:45:38 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:38 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:43 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:45:53 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:54 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:45:59 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:46:08 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:09 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:14 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:46:24 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:24 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:25 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:29 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:46:39 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:40 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:45 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:46:54 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:46:55 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:00 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:47:10 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:11 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:11 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:16 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:47:25 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:26 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:27 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:31 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:47:41 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:42 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:47 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:47:56 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:57 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:47:58 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:02 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:48:11 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:12 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:17 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:48:26 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:27 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:32 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:48:42 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:43 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:48 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:48:57 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:48:58 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:03 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:49:12 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:13 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:18 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:49:28 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:29 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:34 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:49:43 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:44 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:49 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:49:59 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:49:59 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:05 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:50:14 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:15 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:20 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:50:30 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:30 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:36 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:50:45 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:46 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:50:51 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:51:00 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:01 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:02 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:06 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:51:16 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:16 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:22 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:51:31 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:32 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:33 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:37 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:51:46 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:47 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:51:52 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:52:01 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:02 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:07 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:52:17 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:17 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:23 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:52:32 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:33 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:34 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:38 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:52:47 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:48 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:52:53 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:53:03 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:03 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:09 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:53:18 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:19 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:24 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:53:33 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:34 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:39 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:53:48 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:49 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:53:54 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-[I 210624 16:54:04 watcher:255] XPath(hook:): [&#x27;AU-Frequency ANC&#x27;]
-[I 210624 16:54:10 watcher:255] XPath(hook:): [&#x27;配对&#x27;]
-<br/></div></td></tr></tbody>
+            <div class="log">def test_Pairing_Connect_Phone_check():<br/>        device_connect_()<br/>        open_settings_()<br/>        d(resourceId=&quot;android:id/title&quot;, text=&quot;蓝牙&quot;).click()<br/>        time.sleep(2)<br/>        for i in range(100):<br/>            d(resourceId=&quot;com.android.settings:id/preference_detail&quot;).long_click()<br/>&gt;           d(resourceId=&quot;android:id/title&quot;, text=&quot;取消配对&quot;).click()<br/><br/>test_reconnect.py:116: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x00000264BC1417C0&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;android:id/title&#x27;, text=&#x27;取消配对&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_reconnect.py::test_phone_music</td>
+          <td class="col-duration">24.02</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">def test_phone_music():<br/>        device_connect_()<br/>&gt;       Play_music_()<br/><br/>test_reconnect.py:132: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>test_reconnect.py:14: in Play_music_<br/>    d(resourceId=&quot;com.kugou.android:id/l4e&quot;).click()<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x00000264BC576AC0&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;com.kugou.android:id/l4e&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/></div></td></tr></tbody>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-name">test_reconnect.py::test_Disconnect_by_hand</td>
+          <td class="col-duration">28.36</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log">def test_Disconnect_by_hand():<br/>        device_connect_()<br/>        d.press(&quot;home&quot;)<br/>        open_settings_()<br/>        d(resourceId=&quot;android:id/title&quot;, text=&quot;蓝牙&quot;).click(timeout=2)<br/>        for i in range(100):<br/>            d(resourceId=&quot;android:id/summary&quot;).click()<br/>            time.sleep(1)<br/>&gt;           d(resourceId=&quot;android:id/button1&quot;).click()<br/><br/>test_reconnect.py:217: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:150: in click<br/>    self.must_wait(timeout=timeout)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _<br/><br/>self = &lt;uiautomator2._selector.UiObject object at 0x00000264BC11FD30&gt;<br/>exists = True, timeout = None<br/><br/>    def must_wait(self, exists=True, timeout=None):<br/>        &quot;&quot;&quot; wait and if not found raise UiObjectNotFoundError &quot;&quot;&quot;<br/>        if not self.wait(exists, timeout):<br/>&gt;           raise UiObjectNotFoundError({&#x27;code&#x27;: -32002, &#x27;data&#x27;: str(self.selector), &#x27;method&#x27;: &#x27;wait&#x27;})<br/><span class="error">E           uiautomator2.exceptions.UiObjectNotFoundError: -32002 Client error: &lt;&gt; data: Selector [resourceId=&#x27;android:id/button1&#x27;], method: None</span><br/><br/>..\..\..\AppData\Local\Programs\Python\Python38\lib\site-packages\uiautomator2\_selector.py:345: UiObjectNotFoundError<br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_reconnect_</td>
-          <td class="col-duration">1001.30</td>
+          <td class="col-duration">1948.27</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>开始耳机回连测试，请耐心等待结果
-<br/> ------------------------------Captured stderr call------------------------------ <br/>[D 210624 16:09:07 __init__:608] kill process(ps): uiautomator
-[D 210624 16:09:08 __init__:625] uiautomator-v2 is starting ... left: 40.0s
-[D 210624 16:09:09 __init__:625] uiautomator-v2 is starting ... left: 39.0s
-[D 210624 16:09:10 __init__:625] uiautomator-v2 is starting ... left: 38.0s
-[D 210624 16:09:11 __init__:625] uiautomator-v2 is starting ... left: 36.9s
-[D 210624 16:09:12 __init__:625] uiautomator-v2 is starting ... left: 35.9s
-[D 210624 16:09:13 __init__:625] uiautomator-v2 is starting ... left: 34.9s
-[D 210624 16:09:14 __init__:625] uiautomator-v2 is starting ... left: 33.9s
-[D 210624 16:09:15 __init__:625] uiautomator-v2 is starting ... left: 32.8s
-[I 210624 16:09:16 __init__:591] uiautomator back to normal
-<br/></div></td></tr></tbody>
+            <div class="empty log">No log output captured.</div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_startANC_ausound</td>
-          <td class="col-duration">855.80</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>开始耳机ANC开关压力测试测试，请耐心等待结果
-<br/></div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">test_reconnect.py::test_phone_music</td>
-          <td class="col-duration">31.83</td>
+          <td class="col-duration">1706.17</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -496,27 +329,25 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_app_backgrpund_check</td>
-          <td class="col-duration">1008.45</td>
+          <td class="col-duration">1967.07</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>开始耳机回连测试，请耐心等待结果
-<br/></div></td></tr></tbody>
+            <div class="empty log">No log output captured.</div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_RF_bluethonh_check</td>
-          <td class="col-duration">1002.50</td>
+          <td class="col-duration">1955.66</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>开始耳机回连测试，请耐心等待结果
-<br/></div></td></tr></tbody>
+            <div class="empty log">No log output captured.</div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_Ausound_icon_check</td>
-          <td class="col-duration">11.25</td>
+          <td class="col-duration">10.58</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -525,7 +356,7 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_Ausound_icon_check2</td>
-          <td class="col-duration">10.64</td>
+          <td class="col-duration">10.58</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -534,7 +365,7 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_Ausound_icon_check3</td>
-          <td class="col-duration">10.65</td>
+          <td class="col-duration">10.61</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
@@ -543,18 +374,8 @@ function filterTable(elem) { // eslint-disable-line no-unused-vars
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_reconnect.py::test_Ausound_icon_check4</td>
-          <td class="col-duration">10.59</td>
+          <td class="col-duration">10.61</td>
           <td class="col-links"></td></tr>
         <tr>
           <td class="extra" colspan="4">
-            <div class="empty log">No log output captured.</div></td></tr></tbody>
-      <tbody class="passed results-table-row">
-        <tr>
-          <td class="col-result">Passed</td>
-          <td class="col-name">test_reconnect.py::test_Disconnect_by_hand</td>
-          <td class="col-duration">98.16</td>
-          <td class="col-links"></td></tr>
-        <tr>
-          <td class="extra" colspan="4">
-            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>---开始断连压力测试，请耐心等待结果---
-<br/></div></td></tr></tbody></table></body></html>
+            <div class="empty log">No log output captured.</div></td></tr></tbody></table></body></html>
